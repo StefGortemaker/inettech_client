@@ -7,9 +7,9 @@ import java.util.Scanner;
 
 public class Client {
 
-  public static void main(String[] args) {
-    new Client().run();
-  }
+    public static void main(String[] args) {
+        new Client().run();
+    }
 
   private void run() {
     try {

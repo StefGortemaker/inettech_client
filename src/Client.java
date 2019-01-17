@@ -9,12 +9,17 @@ public class Client {
         new Client().run();
     }
 
-    private void run(){
+    private void run() {
         try {
-            Socket socket = new Socket( "127.0.0.1",1337);
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            Socket socket = new Socket("127.0.0.1", 1337);
 
-            System.out.println(bufferedReader.readLine());
+            if(socket.isConnected()){
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+                System.out.println(bufferedReader.readLine());
+            } else {
+                System.out.println("Could not connect to server");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

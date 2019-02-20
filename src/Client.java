@@ -83,8 +83,8 @@ public class Client {
     }
 
     private void sendDirectMessage(String message) {
-        String splitMessage[] = message.split(" ", 3);
-        String directMessage = "PM " + splitMessage[1] + splitMessage[2];
+        String splitMessage[] = message.split(" ", 2);
+        String directMessage = "PM " + splitMessage[1];
         writerPrint(directMessage);
     }
 

@@ -6,6 +6,7 @@ import java.net.Socket;
 public class ServerReader implements Runnable {
 
     private Socket socket;
+    private boolean isRunning = true;
 
     ServerReader(Socket socket) {
         this.socket = socket;
@@ -21,7 +22,7 @@ public class ServerReader implements Runnable {
     public void run() {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            while (true) {
+            while (isRunning) {
                 System.out.println(reader.readLine());
 //                switch (input) {
 //                    case HELO:
@@ -55,6 +56,10 @@ public class ServerReader implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
+    public void stop() throws IOException {
+        isRunning = false;
+        socket.close();
     }
 }

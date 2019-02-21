@@ -1,6 +1,4 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
@@ -11,48 +9,38 @@ public class Client {
         new Client().run();
     }
 
-    PrintWriter writer;
+    private PrintWriter writer;
 
     private void run() {
         try {
             Socket socket = new Socket("127.0.0.1", 1337);
 
             if (socket.isConnected()) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 writer = new PrintWriter(socket.getOutputStream());
                 Thread serverReader = new Thread(new ServerReader(socket));
                 serverReader.start();
 
                 Scanner scanner = new Scanner(System.in);
                 String line = scanner.nextLine();
-
-                writerPrint("HELO " + line);
+                sendClientMessage(line, ClientMessage.MessageType.HELO);
 
                 while (true) {
                     line = scanner.nextLine();
-                    if (line.contains("/bsct")) {
-                        sendBroadcastMessage(line);
-                    } else if (line.contains("/pm")) {
-                        sendDirectMessage(line);
-                    } else if (line.contains("/grpc")) {
-                        //TODO: groupCreate
-                        System.out.println("grpc");
-                    } else if (line.contains("/grpj")) {
-                        //TODO: groupJoin
-                        System.out.println("grpj");
-                    } else if (line.contains("/grps")) {
-                        //TODO: groupSEnd
-                        System.out.println("grps");
-                    } else if (line.contains("/grpl")) {
-                        //TODO: groupLeave
-                        System.out.println("grpl");
-                    } else if (line.contains("/grpk")) {
-                        //TODO: groupKick
-                        System.out.println("grpk");
-                    } else if (line.equals("/help")) {
-                        printHelp();
-                    } else if (line.equals("/quit")) {
-                        writerPrint("QUIT");
+                    String splitLine[] = line.split(" ");
+                    switch (splitLine[0]) {
+                        case "/bsct": sendClientMessage(line, ClientMessage.MessageType.BSCT);break;
+                        case "/clst": sendClientMessage("", ClientMessage.MessageType.CLTLIST);
+                        case "/pm": sendClientMessage(line, ClientMessage.MessageType.PM);break;
+                        case "/glst": sendClientMessage("", ClientMessage.MessageType.GRP_LIST);
+                        case "/grpc": sendClientMessage(line, ClientMessage.MessageType.GRP_CREATE);break;
+                        case "/grpj": sendClientMessage(line, ClientMessage.MessageType.GRP_JOIN);break;
+                        case "/grps": sendClientMessage(line, ClientMessage.MessageType.GRP_SEND);break;
+                        case "/grpl": sendClientMessage(line, ClientMessage.MessageType.GRP_LEAVE);break;
+                        case "/grpk": sendClientMessage(line, ClientMessage.MessageType.GRP_KICK);break;
+                        case "/help": printHelp();break;
+                        case "/quit": writerPrint("QUIT");break;
+                        default: System.out.println("Error: \"" + splitLine[0] + "\" is not an avaiable command, " +
+                                    "try \"/help\" for a list of commands"); break;
                     }
                 }
             }
@@ -67,7 +55,9 @@ public class Client {
     private void printHelp() {
         System.out.println("Commands:");
         System.out.println("/bsct <Message> (broadcast message)");
+        System.out.println("/clst (shows list of online users)" );
         System.out.println("/pm <Username> <Message> (send pm)");
+        System.out.println("/glst (shows list of groups)");
         System.out.println("/grpc <Groupname> (create a group)");
         System.out.println("/grpj <Groupname> (join a group)");
         System.out.println("/grps <Groupname> <Message> (send message in a group)");
@@ -76,18 +66,45 @@ public class Client {
         System.out.println("/quit (quit)");
     }
 
-    private void sendBroadcastMessage(String message) {
-        String splitMessage[] = message.split(" ", 2);
-        String broadcastMessage = "BSCT " + splitMessage[1];
-        writerPrint(broadcastMessage);
+    /**
+     * The printOutgoingMessages method prints the message that is send to the server in the color green, so that the
+     * user can see what commands the client sends to the server.
+     *
+     * @param message The message that is send to the server.
+     */
+    private void printOutgoingMessages(String message) {
+        String colorCode = "\u001b[32m";
+        StringBuilder outgoingMessage = (new StringBuilder()).append(colorCode).append("<< ").append(message);
+        System.out.println(outgoingMessage.append("\u001b[0m").toString());
     }
 
-    private void sendDirectMessage(String message) {
-        String splitMessage[] = message.split(" ", 2);
-        String directMessage = "PM " + splitMessage[1];
-        writerPrint(directMessage);
+    /**
+     * The sendClientMessage converts the message and its type into a message that the server can read. It takes the
+     * message itself and the type of the message. Firdt it checks the type of message and then converts the message
+     * correspondingly.
+     *
+     * @param message The message that needs to be send to the server
+     * @param type    The type of the message
+     */
+    private void sendClientMessage(String message, ClientMessage.MessageType type) {
+        ClientMessage clientMessage;
+        if (type == ClientMessage.MessageType.HELO || type == ClientMessage.MessageType.CLTLIST ||
+                type == ClientMessage.MessageType.GRP_LIST) {
+            clientMessage = new ClientMessage(type, message);
+        } else{
+            String splitMessage[] = message.split(" ", 2);
+            clientMessage = new ClientMessage(type, splitMessage[1]);
+        }
+
+        printOutgoingMessages(clientMessage.toString());
+        writerPrint(clientMessage.toString());
     }
 
+    /**
+     * The writerPrint method user the printWriter to send a message to the server.
+     *
+     * @param message The message that needs to be send to the server
+     */
     private void writerPrint(String message) {
         writer.println(message);
         writer.flush();

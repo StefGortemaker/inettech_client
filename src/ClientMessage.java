@@ -12,7 +12,7 @@ public class ClientMessage {
         }
 
         public static enum MessageType {
-            BSCT, CLTLIST, GRP_CREATE, GRP_JOIN, GRP_KICK, GRP_LEAVE, GRP_LIST, GRP_SEND, HELO, PM, PONG, QUIT;
+            BCST, CLTLIST, GRP_CREATE, GRP_JOIN, GRP_KICK, GRP_LEAVE, GRP_LIST, GRP_SEND, HELO, PM, PONG, QUIT;
 
             private MessageType() {
             }

@@ -28,7 +28,7 @@ public class Client {
                     line = scanner.nextLine();
                     String splitLine[] = line.split(" ");
                     switch (splitLine[0]) {
-                        case "/bsct": sendClientMessage(line, ClientMessage.MessageType.BSCT); break;
+                        case "/bcst": sendClientMessage(line, ClientMessage.MessageType.BCST); break;
                         case "/clst": sendClientMessage("", ClientMessage.MessageType.CLTLIST); break;
                         case "/pm": sendClientMessage(line, ClientMessage.MessageType.PM); break;
                         case "/glst": sendClientMessage("", ClientMessage.MessageType.GRP_LIST); break;
@@ -54,7 +54,7 @@ public class Client {
      */
     private void printHelp() {
         System.out.println("Commands:");
-        System.out.println("/bsct <Message> (broadcast message)");
+        System.out.println("/bcst <Message> (broadcast message)");
         System.out.println("/clst (shows list of online users)" );
         System.out.println("/pm <Username> <Message> (send pm)");
         System.out.println("/glst (shows list of groups)");

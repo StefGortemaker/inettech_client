@@ -39,7 +39,7 @@ public class Client {
                         case "/grpk": sendClientMessage(line, ClientMessage.MessageType.GRP_KICK); break;
                         case "/help": printHelp(); break;
                         case "/quit": writerPrint("QUIT"); break;
-                        default: System.out.println("Error: \"" + splitLine[0] + "\" is not an avaiable command, " +
+                        default: System.out.println("Error: \"" + splitLine[0] + "\" is not a valid command, " +
                                     "try \"/help\" for a list of commands"); break;
                     }
                 }
@@ -80,7 +80,7 @@ public class Client {
 
     /**
      * The sendClientMessage converts the message and its type into a message that the server can read. It takes the
-     * message itself and the type of the message. Firdt it checks the type of message and then converts the message
+     * message itself and the type of the message. First it checks the type of message and then converts the message
      * correspondingly.
      *
      * @param message The message that needs to be send to the server

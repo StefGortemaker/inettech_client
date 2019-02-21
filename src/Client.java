@@ -28,17 +28,17 @@ public class Client {
                     line = scanner.nextLine();
                     String splitLine[] = line.split(" ");
                     switch (splitLine[0]) {
-                        case "/bsct": sendClientMessage(line, ClientMessage.MessageType.BSCT);break;
-                        case "/clst": sendClientMessage("", ClientMessage.MessageType.CLTLIST);
-                        case "/pm": sendClientMessage(line, ClientMessage.MessageType.PM);break;
-                        case "/glst": sendClientMessage("", ClientMessage.MessageType.GRP_LIST);
-                        case "/grpc": sendClientMessage(line, ClientMessage.MessageType.GRP_CREATE);break;
-                        case "/grpj": sendClientMessage(line, ClientMessage.MessageType.GRP_JOIN);break;
-                        case "/grps": sendClientMessage(line, ClientMessage.MessageType.GRP_SEND);break;
-                        case "/grpl": sendClientMessage(line, ClientMessage.MessageType.GRP_LEAVE);break;
-                        case "/grpk": sendClientMessage(line, ClientMessage.MessageType.GRP_KICK);break;
-                        case "/help": printHelp();break;
-                        case "/quit": writerPrint("QUIT");break;
+                        case "/bsct": sendClientMessage(line, ClientMessage.MessageType.BSCT); break;
+                        case "/clst": sendClientMessage("", ClientMessage.MessageType.CLTLIST); break;
+                        case "/pm": sendClientMessage(line, ClientMessage.MessageType.PM); break;
+                        case "/glst": sendClientMessage("", ClientMessage.MessageType.GRP_LIST); break;
+                        case "/grpc": sendClientMessage(line, ClientMessage.MessageType.GRP_CREATE); break;
+                        case "/grpj": sendClientMessage(line, ClientMessage.MessageType.GRP_JOIN); break;
+                        case "/grps": sendClientMessage(line, ClientMessage.MessageType.GRP_SEND); break;
+                        case "/grpl": sendClientMessage(line, ClientMessage.MessageType.GRP_LEAVE); break;
+                        case "/grpk": sendClientMessage(line, ClientMessage.MessageType.GRP_KICK); break;
+                        case "/help": printHelp(); break;
+                        case "/quit": writerPrint("QUIT"); break;
                         default: System.out.println("Error: \"" + splitLine[0] + "\" is not an avaiable command, " +
                                     "try \"/help\" for a list of commands"); break;
                     }

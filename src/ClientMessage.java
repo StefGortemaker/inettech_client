@@ -1,4 +1,5 @@
 public class ClientMessage {
+
         private ClientMessage.MessageType type;
         private String line;
 
@@ -11,10 +12,10 @@ public class ClientMessage {
             return this.type + " " + this.line;
         }
 
-        public static enum MessageType {
+        public enum MessageType {
             BCST, CLTLIST, GRP_CREATE, GRP_JOIN, GRP_KICK, GRP_LEAVE, GRP_LIST, GRP_SEND, HELO, PM, PONG, QUIT;
 
-            private MessageType() {
+            MessageType() {
             }
         }
 }

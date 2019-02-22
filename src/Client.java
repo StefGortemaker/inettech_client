@@ -26,21 +26,52 @@ public class Client {
 
                 while (true) {
                     line = scanner.nextLine();
-                    String splitLine[] = line.split(" ");
-                    switch (splitLine[0]) {
-                        case "/bcst": sendClientMessage(line, ClientMessage.MessageType.BCST); break;
-                        case "/clst": sendClientMessage("", ClientMessage.MessageType.CLTLIST); break;
-                        case "/pm": sendClientMessage(line, ClientMessage.MessageType.PM); break;
-                        case "/glst": sendClientMessage("", ClientMessage.MessageType.GRP_LIST); break;
-                        case "/grpc": sendClientMessage(line, ClientMessage.MessageType.GRP_CREATE); break;
-                        case "/grpj": sendClientMessage(line, ClientMessage.MessageType.GRP_JOIN); break;
-                        case "/grps": sendClientMessage(line, ClientMessage.MessageType.GRP_SEND); break;
-                        case "/grpl": sendClientMessage(line, ClientMessage.MessageType.GRP_LEAVE); break;
-                        case "/grpk": sendClientMessage(line, ClientMessage.MessageType.GRP_KICK); break;
-                        case "/help": printHelp(); break;
-                        case "/quit": writerPrint("QUIT"); break;
-                        default: System.out.println("Error: \"" + splitLine[0] + "\" is not a valid command, " +
-                                    "try \"/help\" for a list of commands"); break;
+                    String splitLine[] = line.split(" ", 2);
+                    if (splitLine.length == 2) {
+                        switch (splitLine[0]) {
+                            case "/bcst":
+                                sendClientMessage(splitLine[1], ClientMessage.MessageType.BCST);
+                                break;
+                            case "/pm":
+                                sendClientMessage(splitLine[1], ClientMessage.MessageType.PM);
+                                break;
+                            case "/grpc":
+                                sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_CREATE);
+                                break;
+                            case "/grpj":
+                                sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_JOIN);
+                                break;
+                            case "/grps":
+                                sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_SEND);
+                                break;
+                            case "/grpl":
+                                sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_LEAVE);
+                                break;
+                            case "/grpk":
+                                sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_KICK);
+                                break;
+                            default:
+                                System.out.println("Error: invalid command, try \"/help\" for a list of commands");
+                                break;
+                        }
+                    } else {
+                        switch (splitLine[0]) {
+                            case "/clst":
+                                sendClientMessage("", ClientMessage.MessageType.CLTLIST);
+                                break;
+                            case "/glst":
+                                sendClientMessage("", ClientMessage.MessageType.GRP_LIST);
+                                break;
+                            case "/help":
+                                printHelp();
+                                break;
+                            case "/quit":
+                                writerPrint("QUIT");
+                                break;
+                            default:
+                                System.out.println("Error: invalid command, try \"/help\" for a list of commands");
+                                break;
+                        }
                     }
                 }
             }
@@ -55,7 +86,7 @@ public class Client {
     private void printHelp() {
         System.out.println("Commands:");
         System.out.println("/bcst <Message> (broadcast message)");
-        System.out.println("/clst (shows list of online users)" );
+        System.out.println("/clst (shows list of online users)");
         System.out.println("/pm <Username> <Message> (send pm)");
         System.out.println("/glst (shows list of groups)");
         System.out.println("/grpc <Groupname> (create a group)");
@@ -87,15 +118,7 @@ public class Client {
      * @param type    The type of the message
      */
     private void sendClientMessage(String message, ClientMessage.MessageType type) {
-        ClientMessage clientMessage;
-        if (type == ClientMessage.MessageType.HELO || type == ClientMessage.MessageType.CLTLIST ||
-                type == ClientMessage.MessageType.GRP_LIST) {
-            clientMessage = new ClientMessage(type, message);
-        } else{
-            String splitMessage[] = message.split(" ", 2);
-            clientMessage = new ClientMessage(type, splitMessage[1]);
-        }
-
+        ClientMessage clientMessage = new ClientMessage(type, message);
         printOutgoingMessages(clientMessage.toString());
         writerPrint(clientMessage.toString());
     }

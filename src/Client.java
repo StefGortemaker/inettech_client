@@ -26,34 +26,41 @@ public class Client {
 
                 while (true) {
                     line = scanner.nextLine();
-                    String splitLine[] = line.split(" ", 2);
+                    String[] splitLine = line.split(" ", 2);
                     switch (splitLine[0]) {
                         case "/bcst":
-                            sendClientMessage(splitLine[1], ClientMessage.MessageType.BCST);
+                            if (splitLine.length != 2) EmptyMessageError("/bcst");
+                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.BCST);
                             break;
                         case "/clst":
                             sendClientMessage("", ClientMessage.MessageType.CLTLIST);
                             break;
                         case "/pm":
-                            sendClientMessage(splitLine[1], ClientMessage.MessageType.PM);
+                            if (splitLine.length != 2) EmptyMessageError("/pm");
+                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.PM);
                             break;
                         case "/glst":
                             sendClientMessage("", ClientMessage.MessageType.GRP_LIST);
                             break;
                         case "/grpc":
-                            sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_CREATE);
+                            if (splitLine.length != 2) EmptyMessageError("/grpc");
+                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_CREATE);
                             break;
                         case "/grpj":
-                            sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_JOIN);
+                            if (splitLine.length != 2) EmptyMessageError("/grpj");
+                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_JOIN);
                             break;
                         case "/grps":
-                            sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_SEND);
+                            if (splitLine.length != 2) EmptyMessageError("/grpl");
+                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_SEND);
                             break;
                         case "/grpl":
-                            sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_LEAVE);
+                            if (splitLine.length != 2) EmptyMessageError("/bcst");
+                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_LEAVE);
                             break;
                         case "/grpk":
-                            sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_KICK);
+                            if (splitLine.length != 2) EmptyMessageError("/grpk");
+                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_KICK);
                             break;
                         case "/help":
                             printHelp();
@@ -71,6 +78,16 @@ public class Client {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * The EmptyMessageError method prints an error when a command that needs content doesn't contain content
+     *
+     * @param command The command that the user is trying to execute
+     */
+    private void EmptyMessageError(String command) {
+        System.out.println("Error: \"" + command + "\" doesn't contain any content, " +
+                "try \"/help\" for a list of commands");
     }
 
     /**

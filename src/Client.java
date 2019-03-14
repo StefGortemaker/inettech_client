@@ -27,52 +27,47 @@ public class Client {
                 while (true) {
                     line = scanner.nextLine();
                     String[] splitLine = line.split(" ", 2);
-                    switch (splitLine[0]) {
-                        case "/bcst":
-                            if (splitLine.length != 2) EmptyMessageError("/bcst");
-                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.BCST);
-                            break;
-                        case "/clst":
-                            sendClientMessage("", ClientMessage.MessageType.CLTLIST);
-                            break;
-                        case "/pm":
-                            if (splitLine.length != 2) EmptyMessageError("/pm");
-                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.PM);
-                            break;
-                        case "/glst":
-                            sendClientMessage("", ClientMessage.MessageType.GRP_LIST);
-                            break;
-                        case "/grpc":
-                            if (splitLine.length != 2) EmptyMessageError("/grpc");
-                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_CREATE);
-                            break;
-                        case "/grpj":
-                            if (splitLine.length != 2) EmptyMessageError("/grpj");
-                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_JOIN);
-                            break;
-                        case "/grps":
-                            if (splitLine.length != 2) EmptyMessageError("/grpl");
-                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_SEND);
-                            break;
-                        case "/grpl":
-                            if (splitLine.length != 2) EmptyMessageError("/bcst");
-                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_LEAVE);
-                            break;
-                        case "/grpk":
-                            if (splitLine.length != 2) EmptyMessageError("/grpk");
-                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_KICK);
-                            break;
-                        case "/help":
-                            printHelp();
-                            break;
-                        case "/quit":
-                            writerPrint("QUIT");
-                            break;
-                        default:
-                            System.out.println("Error: \"" + splitLine[0] + "\" is an invalid command, " +
-                                    "try \"/help\" for a list of commands");
-                            break;
-                    }
+                    if (splitLine.length != 2) {
+                        switch (splitLine[0]) {
+                            case "/bcst":
+                                sendClientMessage(splitLine[1], ClientMessage.MessageType.BCST);
+                                break;
+                            case "/clst":
+                                sendClientMessage("", ClientMessage.MessageType.CLTLIST);
+                                break;
+                            case "/pm":
+                                sendClientMessage(splitLine[1], ClientMessage.MessageType.PM);
+                                break;
+                            case "/glst":
+                                sendClientMessage("", ClientMessage.MessageType.GRP_LIST);
+                                break;
+                            case "/grpc":
+                                sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_CREATE);
+                                break;
+                            case "/grpj":
+                                sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_JOIN);
+                                break;
+                            case "/grps":
+                                sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_SEND);
+                                break;
+                            case "/grpl":
+                                sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_LEAVE);
+                                break;
+                            case "/grpk":
+                                sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_KICK);
+                                break;
+                            case "/help":
+                                printHelp();
+                                break;
+                            case "/quit":
+                                writerPrint("QUIT");
+                                break;
+                            default:
+                                System.out.println("Error: \"" + splitLine[0] + "\" is an invalid command, " +
+                                        "try \"/help\" for a list of commands");
+                                break;
+                        }
+                    } else printEmptyCommandError();
                 }
             }
         } catch (IOException e) {
@@ -81,12 +76,11 @@ public class Client {
     }
 
     /**
-     * The EmptyMessageError method prints an error when a command that needs content doesn't contain content
+     * The printEmptyCommandError method prints an error when a command that needs content doesn't contain content
      *
-     * @param command The command that the user is trying to execute
      */
-    private void EmptyMessageError(String command) {
-        System.out.println("Error: \"" + command + "\" doesn't contain any content, " +
+    private void printEmptyCommandError() {
+        System.out.println("Error: command doesn't contain any content, " +
                 "try \"/help\" for a list of commands");
     }
 

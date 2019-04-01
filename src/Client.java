@@ -9,6 +9,7 @@ public class Client {
         new Client().run();
     }
 
+    private boolean isRunning = true;
     private PrintWriter writer;
 
     private void run() {
@@ -24,7 +25,7 @@ public class Client {
                 String line = scanner.nextLine();
                 sendClientMessage(line, ClientMessage.MessageType.HELO);
 
-                while (true) {
+                while (isRunning) {
                     line = scanner.nextLine();
                     String[] splitLine = line.split(" ", 2);
                     switch (splitLine[0]) {
@@ -66,7 +67,7 @@ public class Client {
                             printHelp();
                             break;
                         case "/quit":
-                            writerPrint("QUIT");
+                            writerPrint(ClientMessage.MessageType.QUIT.toString());
                             break;
                         default:
                             System.out.println("Error: \"" + splitLine[0] + "\" is an invalid command, " +
@@ -86,7 +87,7 @@ public class Client {
      * @param command The command that the user is trying to execute
      */
     private void EmptyMessageError(String command) {
-        System.out.println("Error: \"" + command + "\" doesn't contain any content, " +
+        System.out.println("Error: \"" + command + "\" doesn't contain the right content, " +
                 "try \"/help\" for a list of commands");
     }
 
@@ -99,11 +100,11 @@ public class Client {
         System.out.println("/clst (shows list of online users)");
         System.out.println("/pm <Username> <Message> (send pm)");
         System.out.println("/glst (shows list of groups)");
-        System.out.println("/grpc <Groupname> (create a group)");
-        System.out.println("/grpj <Groupname> (join a group)");
-        System.out.println("/grps <Groupname> <Message> (send message in a group)");
-        System.out.println("/grpl <Groupname> (leave group)");
-        System.out.println("/grpk <Groupname> <Username> (kick user from group)");
+        System.out.println("/grpc <Group name> (create a group)");
+        System.out.println("/grpj <Group name> (join a group)");
+        System.out.println("/grps <Group name> <Message> (send message in a group)");
+        System.out.println("/grpl <Group name> (leave group)");
+        System.out.println("/grpk <Group name> <Username> (kick user from group)");
         System.out.println("/quit (quit)");
     }
 

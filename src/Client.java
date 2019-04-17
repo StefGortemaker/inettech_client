@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -66,6 +67,10 @@ public class Client {
                         case "/help":
                             printHelp();
                             break;
+                        case "/trnf":
+                            File curDir = new File("./FilesToSend");
+                            printFiles(curDir);
+                            break;
                         case "/quit":
                             writerPrint(ClientMessage.MessageType.QUIT.toString());
                             break;
@@ -89,6 +94,17 @@ public class Client {
     private void EmptyMessageError(String command) {
         System.out.println("Error: \"" + command + "\" doesn't contain the right content, " +
                 "try \"/help\" for a list of commands");
+    }
+
+    private void printFiles(File curDir) {
+        File[] filesList = curDir.listFiles();
+        for(File f : filesList){
+            if(f.isDirectory())
+                System.out.println(f.getName());
+            if(f.isFile()){
+                System.out.println(f.getName());
+            }
+        }
     }
 
     /**

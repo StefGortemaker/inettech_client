@@ -1,15 +1,18 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 public class ServerReader implements Runnable {
 
     private Socket socket;
+    private Client client;
     private boolean isRunning = true;
 
-    ServerReader(Socket socket) {
+    ServerReader(Socket socket, Client client) {
         this.socket = socket;
+        this.client = client;
     }
 
     @Override
@@ -56,9 +59,13 @@ public class ServerReader implements Runnable {
                     case OK:
                         break;
                     case PING:
+                        sendPong();
                         break;
                     case PM:
                         printDirectMessage(incomingMessagePayload);
+                        break;
+                    case REQ_FILE:
+                        printFileTransferRequest(incomingMessagePayload);
                         break;
                     case UNKNOWN:
                         break;
@@ -94,6 +101,10 @@ public class ServerReader implements Runnable {
         System.out.println(outgoingMessage.append("\u001b[0m").toString());
     }
 
+    private void printFileTransferRequest(String message) {
+        System.out.println(message);
+    }
+
     private void printGroupCreated(String message) {
         System.out.println(message);
     }
@@ -122,6 +133,10 @@ public class ServerReader implements Runnable {
         String colorCode = "\u001b[31m";
         StringBuilder outgoingMessage = (new StringBuilder()).append(colorCode).append(">> ").append(incomingMessage);
         System.out.println(outgoingMessage.append("\u001b[0m").toString());
+    }
+
+    private void sendPong() {
+        client.sendClientMessage("", ClientMessage.MessageType.PONG);
     }
 
     public void stop() throws IOException {

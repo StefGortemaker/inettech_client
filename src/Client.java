@@ -1,7 +1,7 @@
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Client {
@@ -12,14 +12,17 @@ public class Client {
 
     private boolean isRunning = true;
     private PrintWriter writer;
+    private OutputStream os;
 
     private void run() {
         try {
             Socket socket = new Socket("127.0.0.1", 1337);
 
             if (socket.isConnected()) {
-                writer = new PrintWriter(socket.getOutputStream());
-                Thread serverReader = new Thread(new ServerReader(socket));
+
+                os = socket.getOutputStream();
+                writer = new PrintWriter(os);
+                Thread serverReader = new Thread(new ServerReader(socket, this));
                 serverReader.start();
 
                 Scanner scanner = new Scanner(System.in);
@@ -68,8 +71,10 @@ public class Client {
                             printHelp();
                             break;
                         case "/trnf":
-                            File curDir = new File("./FilesToSend");
-                            printFiles(curDir);
+                            File directory;
+                            if (splitLine.length != 2) directory = new File(".");
+                            else directory = new File(splitLine[1]);
+                            getFilesFromDirectory(directory, scanner);
                             break;
                         case "/quit":
                             writerPrint(ClientMessage.MessageType.QUIT.toString());
@@ -96,15 +101,40 @@ public class Client {
                 "try \"/help\" for a list of commands");
     }
 
-    private void printFiles(File curDir) {
-        File[] filesList = curDir.listFiles();
-        for(File f : filesList){
-            if(f.isDirectory())
-                System.out.println(f.getName());
-            if(f.isFile()){
-                System.out.println(f.getName());
+    private void getFilesFromDirectory(File directory, Scanner scanner) {
+        File[] filesInDirectory = directory.listFiles();
+        List<File> fileList = new ArrayList<>();
+        if (filesInDirectory != null) {
+            for (File f : filesInDirectory) {
+                if (f.isFile()) {
+                    fileList.add(f);
+                }
+            }
+            File[] files = new File[fileList.size()];
+            fileList.toArray(files);
+            printFiles(files, scanner);
+        } else {
+            System.out.println("invalid file diretory");
+        }
+    }
+
+    /**
+     * The printFiles prints all files that are in the directory
+     *
+     * @param files list of files that needs to be printed
+     */
+    private void printFiles(File[] files, Scanner scanner) {
+        int i = 1;
+        System.out.println("which user do you want to send the file?");
+        String userName = scanner.nextLine();
+        System.out.println("Select a file you want to send: ");
+        for (File f : files) {
+            if (f.isFile()) {
+                System.out.println(i + ") " + f.getName());
+                i++;
             }
         }
+        selectFile(files, userName);
     }
 
     /**
@@ -121,6 +151,7 @@ public class Client {
         System.out.println("/grps <Group name> <Message> (send message in a group)");
         System.out.println("/grpl <Group name> (leave group)");
         System.out.println("/grpk <Group name> <Username> (kick user from group)");
+        System.out.println("/trnf <File Directory> (transfer file from directory)");
         System.out.println("/quit (quit)");
     }
 
@@ -136,6 +167,22 @@ public class Client {
         System.out.println(outgoingMessage.append("\u001b[0m").toString());
     }
 
+    private void selectFile(File[] filesList, String userName) {
+        Scanner scanner = new Scanner(System.in);
+        int selectedFile;
+        if (scanner.hasNextInt() && (selectedFile = Integer.valueOf(scanner.nextLine())) <= filesList.length) {
+            System.out.println("Selected: " + filesList[selectedFile - 1].getName());
+            System.out.println("Are you sure you want to send \"" + filesList[selectedFile - 1].getName() + "\" " +
+                    " to " + userName + " [Y/N]");
+            String confirm = scanner.nextLine();
+            if (confirm.equals("Y") || confirm.equals("y")) {
+                sendTransferRequest(filesList[selectedFile - 1], userName);
+            } else System.out.println("File not send");
+        } else {
+            printFiles(filesList, scanner);
+        }
+    }
+
     /**
      * The sendClientMessage converts the message and its type into a message that the server can read. It takes the
      * message itself and the type of the message. First it checks the type of message and then converts the message
@@ -144,10 +191,33 @@ public class Client {
      * @param message The message that needs to be send to the server
      * @param type    The type of the message
      */
-    private void sendClientMessage(String message, ClientMessage.MessageType type) {
+    void sendClientMessage(String message, ClientMessage.MessageType type) {
         ClientMessage clientMessage = new ClientMessage(type, message);
         printOutgoingMessages(clientMessage.toString());
         writerPrint(clientMessage.toString());
+    }
+
+    private void sendFile(File file) throws IOException {
+        byte[] fileBytes = new byte[(int) file.length()];
+
+        //read file in
+        FileInputStream fis = new FileInputStream(file);
+        BufferedInputStream bis = new BufferedInputStream(fis);
+        DataInputStream dis = new DataInputStream(bis);
+        dis.readFully(fileBytes, 0, fileBytes.length);
+
+        //send file out
+        DataOutputStream dos = new DataOutputStream(os);
+        dos.writeUTF(file.getName());
+        dos.writeLong(file.length());
+        dos.write(fileBytes, 0, fileBytes.length);
+        dos.flush();
+    }
+
+    private void sendTransferRequest(File file, String userName) {
+        System.out.println("sendTransferRequest");
+        String message = userName + " " + file.getName();
+        sendClientMessage(message, ClientMessage.MessageType.REQ_FILE);
     }
 
     /**
@@ -158,5 +228,9 @@ public class Client {
     private void writerPrint(String message) {
         writer.println(message);
         writer.flush();
+    }
+
+    PrintWriter getWriter() {
+        return writer;
     }
 }

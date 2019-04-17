@@ -12,6 +12,8 @@ public class Client {
     private boolean isRunning = true;
     private PrintWriter writer;
 
+    private Encyptor encyptor;
+
     private void run() {
         try {
             Socket socket = new Socket("127.0.0.1", 1337);
@@ -20,6 +22,8 @@ public class Client {
                 writer = new PrintWriter(socket.getOutputStream());
                 Thread serverReader = new Thread(new ServerReader(socket));
                 serverReader.start();
+
+                encyptor = new Encyptor();
 
                 Scanner scanner = new Scanner(System.in);
                 String line = scanner.nextLine();
@@ -140,7 +144,8 @@ public class Client {
      * @param message The message that needs to be send to the server
      */
     private void writerPrint(String message) {
-        writer.println(message);
+        String encryptedMessage = encyptor.encrypt(message);
+        writer.println(encryptedMessage);
         writer.flush();
     }
 }

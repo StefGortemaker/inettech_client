@@ -16,8 +16,10 @@ public class ServerReader implements Runnable {
     public void run() {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            Encyptor encyptor = new Encyptor();
             while (isRunning) {
-                ServerMessage incomingMessage = new ServerMessage(reader.readLine());
+                String encyptedMessage = reader.readLine();
+                ServerMessage incomingMessage = new ServerMessage(encyptor.decrypt(encyptedMessage));
                 printIncomingMessage(incomingMessage.toString());
 
                 ServerMessage.MessageType messageType = incomingMessage.getMessageType();

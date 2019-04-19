@@ -49,6 +49,7 @@ public class ServerMessage {
     public enum MessageType {
         HELO, BCST, PING, QUIT,
         CLTLIST, PM, GRP_CREATE, GRPLIST, GRP_JOIN, GRP_SEND, GRP_LEAVE, GRP_KICK,
+        REQ_FILE, ACCEPT_FILE, DENY_FILE,
         OK, ERR, UNKNOWN;
 
         MessageType(){

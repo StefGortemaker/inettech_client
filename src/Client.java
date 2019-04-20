@@ -109,6 +109,12 @@ public class Client {
         }
     }
 
+    /**
+     * The acceptDenyFileTransfer will send an accept or deny file transfer message to either accept or deny the
+     * file transfer.
+     *
+     * @param answer the answer the user has given to the file transfer request.
+     */
     private void acceptDenyFileTransfer(String answer) {
         Map.Entry<String,String> entry = incomingTransferFileRequests.entrySet().iterator().next();
         if (answer.equals("y") || answer.equals("Y")) {
@@ -130,6 +136,12 @@ public class Client {
                 "try \"/help\" for a list of commands");
     }
 
+    /**
+     * The getFilesFromDirectory method retrieves all File items from a user specified directory.
+     *
+     * @param directory The directory
+     * @param scanner Scanner for user input
+     */
     private void getFilesFromDirectory(File directory, Scanner scanner) {
         File[] filesInDirectory = directory.listFiles();
         List<File> fileList = new ArrayList<>();
@@ -196,6 +208,13 @@ public class Client {
         System.out.println(outgoingMessage.append("\u001b[0m").toString());
     }
 
+    /**
+     * The selectFile method prints a list of files that are in a user specified directory. The user can choose a file
+     * to transfer to another user.
+     *
+     * @param filesList list of files.
+     * @param userName username of the user this client wants to transfer the file to.
+     */
     private void selectFile(File[] filesList, String userName) {
         Scanner scanner = new Scanner(System.in);
         int selectedFile;
@@ -226,6 +245,13 @@ public class Client {
         writerPrint(clientMessage.toString());
     }
 
+    /**
+     * The sendFile method will read in a file and write is to the server over the socket.
+     *
+     * @param file The file that needs to be transferred
+     * @throws IOException Throws an exception when something went wrong whilst reading or sending the file over the
+     *                      socket.
+     */
     void sendFile(File file) throws IOException {
         byte[] fileBytes = new byte[(int) file.length()];
 
@@ -237,12 +263,19 @@ public class Client {
 
         //send file out
         DataOutputStream dos = new DataOutputStream(os);
-        dos.writeUTF(file.getName());
-        dos.writeLong(file.length());
+        dos.writeUTF(file.getName()); // write filename
+        dos.writeLong(file.length()); // write file size
         dos.write(fileBytes, 0, fileBytes.length);
         dos.flush();
     }
 
+    /**
+     * The sendTransferRequest method will send a file transfer request to the client that is supposed to receive the
+     * file.
+     *
+     * @param file The file that needs to be transferred
+     * @param userName username of the user this client wants to transfer the file to.
+     */
     private void sendTransferRequest(File file, String userName) {
         transferableFiles.put(userName, file);
         String message = userName + " " + file.getName();

@@ -40,7 +40,7 @@ public class Client {
 
                 while (isRunning) {
                     line = scanner.nextLine();
-                    String[] splitLine = line.split(" ", 2);
+                    String[] splitLine = line.split(" ", 3);
                     if (fileTransferRequest) {
                         acceptDenyFileTransfer(line);
                     } else {
@@ -53,8 +53,9 @@ public class Client {
                                 sendClientMessage("", ClientMessage.MessageType.CLTLIST);
                                 break;
                             case "/pm":
-                                if (splitLine.length != 2) emptyMessageError("/pm");
-                                else sendClientMessage(splitLine[1], ClientMessage.MessageType.PM);
+                                if (splitLine.length != 3) emptyMessageError("/pm");
+                                else sendClientMessage(splitLine[1] + " " + splitLine[2],
+                                        ClientMessage.MessageType.PM);
                                 break;
                             case "/glst":
                                 sendClientMessage("", ClientMessage.MessageType.GRP_LIST);
@@ -68,16 +69,18 @@ public class Client {
                                 else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_JOIN);
                                 break;
                             case "/grps":
-                                if (splitLine.length != 2) emptyMessageError("/grpl");
-                                else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_SEND);
+                                if (splitLine.length != 3) emptyMessageError("/grpl");
+                                else sendClientMessage(splitLine[1] + " " + splitLine[2],
+                                        ClientMessage.MessageType.GRP_SEND);
                                 break;
                             case "/grpl":
                                 if (splitLine.length != 2) emptyMessageError("/bcst");
                                 else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_LEAVE);
                                 break;
                             case "/grpk":
-                                if (splitLine.length != 2) emptyMessageError("/grpk");
-                                else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_KICK);
+                                if (splitLine.length != 3) emptyMessageError("/grpk");
+                                else sendClientMessage(splitLine[1] + " " + splitLine[2],
+                                        ClientMessage.MessageType.GRP_KICK);
                                 break;
                             case "/help":
                                 printHelp();

@@ -38,9 +38,6 @@ public class ServerReader implements Runnable {
                     case GRPLIST:
                         printGroupList(incomingMessagePayload);
                         break;
-                    case GRP_CREATE:
-                        printGroupCreated(incomingMessagePayload);
-                        break;
                     case GRP_JOIN:
                         printUserJoinedGroup(incomingMessagePayload);
                         break;
@@ -79,6 +76,9 @@ public class ServerReader implements Runnable {
                     case TRANSFER_FILE:
                         receiveFile(incomingMessagePayload);
                         break;
+                    case FILE_RECEIVED:
+                        fileReceived(incomingMessagePayload);
+                        break;
                     case UNKNOWN:
                         break;
                     case QUIT:
@@ -89,6 +89,11 @@ public class ServerReader implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void fileReceived(String message) {
+        String[] splitMessage = message.split(" ", 2);
+        System.out.println(splitMessage[0] + " successfully received file: " + splitMessage[1]);
     }
 
     private void printBroadcastMessage(String message) {
@@ -134,28 +139,31 @@ public class ServerReader implements Runnable {
         client.getTransferableFiles().remove(splitMessage[0]);
     }
 
-    private void printGroupCreated(String message) {
-        System.out.println(message);
-    }
-
     private void printGroupList(String message) {
         System.out.println(message);
     }
 
     private void printGroupMessage(String message) {
-        System.out.println(message);
+        String[] splitMessage = message.split(" ", 3);
+        System.out.println("=> " + splitMessage[0] + " -> " + splitMessage[1] + ": " + splitMessage[2]);
     }
 
     private void printUserJoinedGroup(String message) {
-        System.out.println(message);
+        String[] splitMessage = message.split(" ", 2);
+        System.out.println("=> " + splitMessage[1] + " -> " + splitMessage[0] + " joined group");
     }
 
     private void printUserKickedFromGroup(String message) {
-        System.out.println(message);
+        String[] splitMessage = message.split(" ", 2);
+        if (splitMessage.length == 2)
+            System.out.println("=> " + splitMessage[0] + " -> " + splitMessage[1] + " kicked from group");
+        else
+            System.out.println("=> " + message + " -> Kicked from group");
     }
 
     private void printUserLeftGroup(String message) {
-        System.out.println(message);
+        String[] splitMessage = message.split(" ", 2);
+        System.out.println("=> " + splitMessage[0] + " -> " + splitMessage[1] + "left the group");
     }
 
     private void printIncomingMessage(String incomingMessage){
@@ -165,6 +173,8 @@ public class ServerReader implements Runnable {
     }
 
     private void receiveFile(String message) throws IOException {
+        String[] splitMessage = message.split(" ", 2);
+
         int bytesRead;
 
         DataInputStream serverData = new DataInputStream(socket.getInputStream());
@@ -179,7 +189,11 @@ public class ServerReader implements Runnable {
             size -= bytesRead;
         }
 
+        output.flush();
 
+        client.sendClientMessage(splitMessage[0] + " " + splitMessage[1],
+                ClientMessage.MessageType.FILE_RECEIVED);
+        System.out.println(fileName + " successfully received");
     }
 
     private void sendPong() {

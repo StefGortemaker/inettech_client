@@ -19,7 +19,7 @@ public class ServerMessage {
 
                 result = ServerMessage.MessageType.valueOf(lineTypePart);
             }
-        } catch (IllegalArgumentException var4) {
+        } catch (IllegalArgumentException IAE) {
             System.out.println("[ERROR] Unknown command");
         }
 
@@ -49,7 +49,7 @@ public class ServerMessage {
     public enum MessageType {
         HELO, BCST, PING, QUIT,
         CLTLIST, PM, GRP_CREATE, GRPLIST, GRP_JOIN, GRP_SEND, GRP_LEAVE, GRP_KICK,
-        REQ_FILE, ACCEPT_FILE, DENY_FILE, TRANSFER_FILE,
+        REQ_FILE, ACCEPT_FILE, DENY_FILE, TRANSFER_FILE, GOODBYE,
         OK, ERR, UNKNOWN;
 
         MessageType(){

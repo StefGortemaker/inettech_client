@@ -14,19 +14,23 @@ public class Client {
     private OutputStream os;
     private HashMap<String, File> transferableFiles = new HashMap<>();
     private HashMap<String, String> incomingTransferFileRequests = new HashMap<>();
+    private ServerReader serverReader;
+    private Socket socket;
 
     private Encyptor encyptor;
 
     private void run() {
         try {
-            Socket socket = new Socket("127.0.0.1", 1337);
+
+            socket = new Socket("127.0.0.1", 1337);
 
             if (socket.isConnected()) {
 
                 os = socket.getOutputStream();
                 writer = new PrintWriter(os);
-                Thread serverReader = new Thread(new ServerReader(socket, this));
-                serverReader.start();
+                serverReader = new ServerReader(socket, this);
+                Thread serverReaderThread = new Thread(serverReader);
+                serverReaderThread.start();
 
                 encyptor = new Encyptor();
 
@@ -86,6 +90,7 @@ public class Client {
                                 break;
                             case "/quit":
                                 writerPrint(ClientMessage.MessageType.QUIT.toString());
+                                isRunning = false;
                                 break;
                             default:
                                 System.out.println("Error: \"" + splitLine[0] + "\" is an invalid command, " +
@@ -97,6 +102,10 @@ public class Client {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (!socket.isConnected()) {
+                System.out.println("Couldn't connect to the server");
+            }
         }
     }
 
@@ -254,6 +263,15 @@ public class Client {
 
     void setFileTransferRequest(boolean fileTransferRequest) {
         this.fileTransferRequest = fileTransferRequest;
+    }
+
+    void stopClient() {
+        try {
+            serverReader.stop();
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     HashMap<String, File> getTransferableFiles() {

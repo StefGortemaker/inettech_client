@@ -56,6 +56,10 @@ public class ServerReader implements Runnable {
                     case HELO:
                         break;
                     case OK:
+                        if (incomingMessagePayload.equals("Goodbye")) {
+                            System.out.println("GoodBye");
+                            client.stopClient();
+                        }
                         break;
                     case PING:
                         sendPong();
@@ -174,13 +178,15 @@ public class ServerReader implements Runnable {
             output.write(buffer, 0, bytesRead);
             size -= bytesRead;
         }
+
+
     }
 
     private void sendPong() {
         client.sendClientMessage("", ClientMessage.MessageType.PONG);
     }
 
-    public void stop() throws IOException {
+    void stop() throws IOException {
         isRunning = false;
         socket.close();
     }

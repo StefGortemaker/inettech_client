@@ -103,6 +103,7 @@ public class ServerReader implements Runnable {
     }
 
     private void printClientList(String message) {
+        System.out.println("Client List:");
         System.out.println(message);
     }
 
@@ -140,6 +141,7 @@ public class ServerReader implements Runnable {
     }
 
     private void printGroupList(String message) {
+        System.out.println("Group List:");
         System.out.println(message);
     }
 

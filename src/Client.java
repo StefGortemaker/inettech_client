@@ -1,7 +1,6 @@
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
-import java.util.Scanner;
+import java.util.*;
 
 public class Client {
 
@@ -10,16 +9,26 @@ public class Client {
     }
 
     private boolean isRunning = true;
+    private boolean fileTransferRequest = false;
     private PrintWriter writer;
+    private OutputStream os;
+    private HashMap<String, File> transferableFiles = new HashMap<>();
+    private HashMap<String, String> incomingTransferFileRequests = new HashMap<>();
+
+    private Encyptor encyptor;
 
     private void run() {
         try {
             Socket socket = new Socket("127.0.0.1", 1337);
 
             if (socket.isConnected()) {
-                writer = new PrintWriter(socket.getOutputStream());
-                Thread serverReader = new Thread(new ServerReader(socket));
+
+                os = socket.getOutputStream();
+                writer = new PrintWriter(os);
+                Thread serverReader = new Thread(new ServerReader(socket, this));
                 serverReader.start();
+
+                encyptor = new Encyptor();
 
                 Scanner scanner = new Scanner(System.in);
                 String line = scanner.nextLine();
@@ -28,51 +37,61 @@ public class Client {
                 while (isRunning) {
                     line = scanner.nextLine();
                     String[] splitLine = line.split(" ", 2);
-                    switch (splitLine[0]) {
-                        case "/bcst":
-                            if (splitLine.length != 2) EmptyMessageError("/bcst");
-                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.BCST);
-                            break;
-                        case "/clst":
-                            sendClientMessage("", ClientMessage.MessageType.CLTLIST);
-                            break;
-                        case "/pm":
-                            if (splitLine.length != 2) EmptyMessageError("/pm");
-                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.PM);
-                            break;
-                        case "/glst":
-                            sendClientMessage("", ClientMessage.MessageType.GRP_LIST);
-                            break;
-                        case "/grpc":
-                            if (splitLine.length != 2) EmptyMessageError("/grpc");
-                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_CREATE);
-                            break;
-                        case "/grpj":
-                            if (splitLine.length != 2) EmptyMessageError("/grpj");
-                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_JOIN);
-                            break;
-                        case "/grps":
-                            if (splitLine.length != 2) EmptyMessageError("/grpl");
-                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_SEND);
-                            break;
-                        case "/grpl":
-                            if (splitLine.length != 2) EmptyMessageError("/bcst");
-                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_LEAVE);
-                            break;
-                        case "/grpk":
-                            if (splitLine.length != 2) EmptyMessageError("/grpk");
-                            else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_KICK);
-                            break;
-                        case "/help":
-                            printHelp();
-                            break;
-                        case "/quit":
-                            writerPrint(ClientMessage.MessageType.QUIT.toString());
-                            break;
-                        default:
-                            System.out.println("Error: \"" + splitLine[0] + "\" is an invalid command, " +
-                                    "try \"/help\" for a list of commands");
-                            break;
+                    if (fileTransferRequest) {
+                        acceptDenyFileTransfer(line);
+                    } else {
+                        switch (splitLine[0]) {
+                            case "/bcst":
+                                if (splitLine.length != 2) emptyMessageError("/bcst");
+                                else sendClientMessage(splitLine[1], ClientMessage.MessageType.BCST);
+                                break;
+                            case "/clst":
+                                sendClientMessage("", ClientMessage.MessageType.CLTLIST);
+                                break;
+                            case "/pm":
+                                if (splitLine.length != 2) emptyMessageError("/pm");
+                                else sendClientMessage(splitLine[1], ClientMessage.MessageType.PM);
+                                break;
+                            case "/glst":
+                                sendClientMessage("", ClientMessage.MessageType.GRP_LIST);
+                                break;
+                            case "/grpc":
+                                if (splitLine.length != 2) emptyMessageError("/grpc");
+                                else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_CREATE);
+                                break;
+                            case "/grpj":
+                                if (splitLine.length != 2) emptyMessageError("/grpj");
+                                else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_JOIN);
+                                break;
+                            case "/grps":
+                                if (splitLine.length != 2) emptyMessageError("/grpl");
+                                else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_SEND);
+                                break;
+                            case "/grpl":
+                                if (splitLine.length != 2) emptyMessageError("/bcst");
+                                else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_LEAVE);
+                                break;
+                            case "/grpk":
+                                if (splitLine.length != 2) emptyMessageError("/grpk");
+                                else sendClientMessage(splitLine[1], ClientMessage.MessageType.GRP_KICK);
+                                break;
+                            case "/help":
+                                printHelp();
+                                break;
+                            case "/trnf":
+                                File directory;
+                                if (splitLine.length != 2) directory = new File(".");
+                                else directory = new File(splitLine[1]);
+                                getFilesFromDirectory(directory, scanner);
+                                break;
+                            case "/quit":
+                                writerPrint(ClientMessage.MessageType.QUIT.toString());
+                                break;
+                            default:
+                                System.out.println("Error: \"" + splitLine[0] + "\" is an invalid command, " +
+                                        "try \"/help\" for a list of commands");
+                                break;
+                        }
                     }
                 }
             }
@@ -81,14 +100,61 @@ public class Client {
         }
     }
 
+    private void acceptDenyFileTransfer(String answer) {
+        Map.Entry<String,String> entry = incomingTransferFileRequests.entrySet().iterator().next();
+        if (answer.equals("y") || answer.equals("Y")) {
+            sendClientMessage(entry.getKey() + " " + entry.getValue(), ClientMessage.MessageType.ACCEPT_FILE);
+        } else {
+            sendClientMessage(entry.getKey() + " " + entry.getValue(), ClientMessage.MessageType.DENY_FILE);
+        }
+        incomingTransferFileRequests.remove(entry.getKey(), entry.getValue());
+        setFileTransferRequest(false);
+    }
+
     /**
      * The EmptyMessageError method prints an error when a command that needs content doesn't contain content
      *
      * @param command The command that the user is trying to execute
      */
-    private void EmptyMessageError(String command) {
+    private void emptyMessageError(String command) {
         System.out.println("Error: \"" + command + "\" doesn't contain the right content, " +
                 "try \"/help\" for a list of commands");
+    }
+
+    private void getFilesFromDirectory(File directory, Scanner scanner) {
+        File[] filesInDirectory = directory.listFiles();
+        List<File> fileList = new ArrayList<>();
+        if (filesInDirectory != null) {
+            for (File f : filesInDirectory) {
+                if (f.isFile()) {
+                    fileList.add(f);
+                }
+            }
+            File[] files = new File[fileList.size()];
+            fileList.toArray(files);
+            printFiles(files, scanner);
+        } else {
+            System.out.println("invalid file diretory");
+        }
+    }
+
+    /**
+     * The printFiles prints all files that are in the directory
+     *
+     * @param files list of files that needs to be printed
+     */
+    private void printFiles(File[] files, Scanner scanner) {
+        int i = 1;
+        System.out.println("which user do you want to send the file?");
+        String userName = scanner.nextLine();
+        System.out.println("Select a file you want to send: ");
+        for (File f : files) {
+            if (f.isFile()) {
+                System.out.println(i + ") " + f.getName());
+                i++;
+            }
+        }
+        selectFile(files, userName);
     }
 
     /**
@@ -105,6 +171,7 @@ public class Client {
         System.out.println("/grps <Group name> <Message> (send message in a group)");
         System.out.println("/grpl <Group name> (leave group)");
         System.out.println("/grpk <Group name> <Username> (kick user from group)");
+        System.out.println("/trnf <File Directory> (transfer file from directory)");
         System.out.println("/quit (quit)");
     }
 
@@ -120,6 +187,22 @@ public class Client {
         System.out.println(outgoingMessage.append("\u001b[0m").toString());
     }
 
+    private void selectFile(File[] filesList, String userName) {
+        Scanner scanner = new Scanner(System.in);
+        int selectedFile;
+        if (scanner.hasNextInt() && (selectedFile = Integer.valueOf(scanner.nextLine())) <= filesList.length) {
+            System.out.println("Selected: " + filesList[selectedFile - 1].getName());
+            System.out.println("Are you sure you want to send \"" + filesList[selectedFile - 1].getName() + "\" " +
+                    " to " + userName + " [Y/N]");
+            String confirm = scanner.nextLine();
+            if (confirm.equals("Y") || confirm.equals("y")) {
+                sendTransferRequest(filesList[selectedFile - 1], userName);
+            } else System.out.println("File not send");
+        } else {
+            printFiles(filesList, scanner);
+        }
+    }
+
     /**
      * The sendClientMessage converts the message and its type into a message that the server can read. It takes the
      * message itself and the type of the message. First it checks the type of message and then converts the message
@@ -128,10 +211,34 @@ public class Client {
      * @param message The message that needs to be send to the server
      * @param type    The type of the message
      */
-    private void sendClientMessage(String message, ClientMessage.MessageType type) {
+    void sendClientMessage(String message, ClientMessage.MessageType type) {
         ClientMessage clientMessage = new ClientMessage(type, message);
         printOutgoingMessages(clientMessage.toString());
         writerPrint(clientMessage.toString());
+    }
+
+    void sendFile(File file) throws IOException {
+        byte[] fileBytes = new byte[(int) file.length()];
+
+        //read file in
+        FileInputStream fis = new FileInputStream(file);
+        BufferedInputStream bis = new BufferedInputStream(fis);
+        DataInputStream dis = new DataInputStream(bis);
+        dis.readFully(fileBytes, 0, fileBytes.length);
+
+        //send file out
+        DataOutputStream dos = new DataOutputStream(os);
+        dos.writeUTF(file.getName());
+        dos.writeLong(file.length());
+        dos.write(fileBytes, 0, fileBytes.length);
+        dos.flush();
+    }
+
+    private void sendTransferRequest(File file, String userName) {
+        transferableFiles.put(userName, file);
+        String message = userName + " " + file.getName();
+        sendClientMessage(message, ClientMessage.MessageType.REQ_FILE);
+        System.out.println("Transfer request send to " + userName);
     }
 
     /**
@@ -140,7 +247,20 @@ public class Client {
      * @param message The message that needs to be send to the server
      */
     private void writerPrint(String message) {
-        writer.println(message);
+        String encryptedMessage = encyptor.encrypt(message);
+        writer.println(encryptedMessage);
         writer.flush();
+    }
+
+    void setFileTransferRequest(boolean fileTransferRequest) {
+        this.fileTransferRequest = fileTransferRequest;
+    }
+
+    HashMap<String, File> getTransferableFiles() {
+        return transferableFiles;
+    }
+
+    HashMap<String, String> getIncomingTransferFileRequests() {
+        return incomingTransferFileRequests;
     }
 }

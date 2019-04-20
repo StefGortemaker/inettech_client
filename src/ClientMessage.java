@@ -13,7 +13,8 @@ public class ClientMessage {
         }
 
         public enum MessageType {
-            BCST, CLTLIST, GRP_CREATE, GRP_JOIN, GRP_KICK, GRP_LEAVE, GRP_LIST, GRP_SEND, HELO, PM, PONG, QUIT;
+            BCST, CLTLIST, GRP_CREATE, GRP_JOIN, GRP_KICK, GRP_LEAVE, GRP_LIST, GRP_SEND, HELO, PM, PONG, REQ_FILE,
+            ACCEPT_FILE, DENY_FILE, FILE_RECEIVED, TRANSFER_FILE, QUIT;
 
             MessageType() {
             }
